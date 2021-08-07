@@ -60,9 +60,9 @@ app.route("/api/users/:_id/exercises").post(function (req, res) {
       res.json({ error: JSON.stringify(err) });
       return;
     }
-    User.findOne(data.userId).exec(function (err, result) {
+    User.findOne(req.params._id).exec(function (err, result) {
       res.json({
-        _id: data.userId,
+        _id: result._id,
         username: result.username,
         description: data.description,
         duration: data.duration,
