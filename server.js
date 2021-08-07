@@ -47,7 +47,7 @@ app.route('/api/users/:_id/exercises').post(function(req, res) {
   const exercise = new Exercise({
     description: req.body.description,
     duration: req.body.duration,
-    date: req.body.date ? new Date(req.body.date).getTime() : new Date().getTime(),
+    date: req.body.date ? req.body.date : new Date().toISOString().split('T')[0],
     userId: req.params._id,
   });
   exercise.save(function(err, data) {
