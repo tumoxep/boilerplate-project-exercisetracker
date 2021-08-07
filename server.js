@@ -11,7 +11,7 @@ const userSchema = new Schema({
 const exerciseSchema = new Schema({
   description: String,
   duration: Number,
-  date: { type: Date, default: Date.now, get: v => v.toISOString().split('T')[0] },
+  date: { type: Date, default: Date.now },
   userId: String,
 });
 let User = mongoose.model("User", userSchema);
