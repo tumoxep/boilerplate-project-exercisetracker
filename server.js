@@ -75,7 +75,7 @@ app.route('/api/users/:_id/logs').get(function(req, res) {
       res.json({ error: JSON.stringify(err) });
       return;
     }
-    res.json(logs);
+    res.json({ log: logs, count: logs.length });
   });
 });
 
