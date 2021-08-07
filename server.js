@@ -55,20 +55,24 @@ app.route('/api/users/:_id/exercises').post(function(req, res) {
       res.json({ error: JSON.stringify(err) });
       return;
     }
-    res.json(data);
+    res.json({
+      description: data.description,
+      duration: data.duration,
+      date: data.date,
+    });
   });
 });
 
 app.route('/api/users/:_id/logs').get(function(req, res) {
-  const chain = Exercise.find({ userId: req.params._id });
+  let chain = Exercise.find({ userId: req.params._id });
   if (req.query.from) {
-    chain.and({ date: { $gte: new Date(req.query.from).getTime() } });
+    chain = chain.and({ date: { $gte: new Date(req.query.from).getTime() } });
   }
   if (req.query.to) {
-    chain.and({ date: { $lte: new Date(req.query.to).getTime() } });
+    chain = chain.and({ date: { $lte: new Date(req.query.to).getTime() } });
   }
   if (req.query.limit) {
-    chain.limit(req.query.limit);
+    chain = chain.limit(req.query.limit);
   }
   chain.exec(function(err, logs) {
     if (err) {
