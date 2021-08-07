@@ -60,11 +60,7 @@ app.route("/api/users/:_id/exercises").post(function (req, res) {
       res.json({ error: JSON.stringify(err) });
       return;
     }
-    res.json({
-      description: data.description,
-      duration: data.duration,
-      date: data.date,
-    });
+    res.json(data);
   });
 });
 
