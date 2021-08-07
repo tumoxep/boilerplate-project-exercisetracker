@@ -55,13 +55,12 @@ app.route("/api/users/:_id/exercises").post(function (req, res) {
   if (req.body.date) {
     exercise.date = new Date(req.body.date);
   }
-  exercise.save(async function (err, data) {
+  exercise.save().merge(User.findById(req.params._id)).exec(function (err, data) {
     if (err) {
       res.json({ error: JSON.stringify(err) });
       return;
     }
-    const userData = await User.findById(req.params._id).exec();
-    res.json(Object.assign({}, data, userData));
+    res.json(data);
   });
 });
 
