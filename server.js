@@ -12,10 +12,9 @@ const exerciseSchema = new Schema({
   description: String,
   duration: Number,
   date: { type: Date, default: Date.now },
-  userId: { type: Schema.Types.ObjectId, ref: 'User' },
+  userId: String,
 });
 const User = mongoose.model("User", userSchema);
-const UserWithLatestExercise = User.discriminator('UserWithLatestExercise', exerciseSchema);
 const Exercise = mongoose.model("Exercise", exerciseSchema);
 
 app.use(cors());
@@ -67,7 +66,7 @@ app.route("/api/users/:_id/exercises").post(function (req, res) {
         username: result.username,
         description: data.description,
         duration: data.duration,
-        date: data.date,
+        date: data.date.toDateString(),
       });
     });
   });
