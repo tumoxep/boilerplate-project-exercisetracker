@@ -1,9 +1,9 @@
-const express = require('express')
-const app = express()
-const cors = require('cors')
-require('dotenv').config()
-const bodyParser = require('body-parser');
-const mongoose = require('mongoose');
+const express = require("express");
+const app = express();
+const cors = require("cors");
+require("dotenv").config();
+const bodyParser = require("body-parser");
+const mongoose = require("mongoose");
 const { Schema } = mongoose;
 const userSchema = new Schema({
   username: String,
@@ -11,46 +11,51 @@ const userSchema = new Schema({
 const exerciseSchema = new Schema({
   description: String,
   duration: Number,
-  date: String,
+  date: { type: Date, default: Date.now, get: v => v.toISOString().split('T')[0] },
   userId: String,
 });
-let User = mongoose.model('User', userSchema);
-let Exercise = mongoose.model('Exercise', exerciseSchema);
+let User = mongoose.model("User", userSchema);
+let Exercise = mongoose.model("Exercise", exerciseSchema);
 
 app.use(cors());
-app.use(express.static('public'));
+app.use(express.static("public"));
 app.use(bodyParser.urlencoded({ extended: false }));
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/views/index.html')
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/views/index.html");
 });
 
-app.route('/api/users').get(function(req, res) {
-  User.find({}, function(err, users) {
-    res.json(users);
-  });
-}).post(function(req, res) {
-  if (!req.body.username) {
-    res.json({ error: 'username required' });
-    return;
-  }
-  const user = new User({ username: req.body.username });
-  user.save(function(err, data) {
-    if (err) {
-      res.json({ error: JSON.stringify(err) });
+app
+  .route("/api/users")
+  .get(function (req, res) {
+    User.find({}, function (err, users) {
+      res.json(users);
+    });
+  })
+  .post(function (req, res) {
+    if (!req.body.username) {
+      res.json({ error: "username required" });
       return;
     }
-    res.json({ username: data.username, _id: data._id });
+    const user = new User({ username: req.body.username });
+    user.save(function (err, data) {
+      if (err) {
+        res.json({ error: JSON.stringify(err) });
+        return;
+      }
+      res.json({ username: data.username, _id: data._id });
+    });
   });
-});
 
-app.route('/api/users/:_id/exercises').post(function(req, res) {
+app.route("/api/users/:_id/exercises").post(function (req, res) {
   const exercise = new Exercise({
     description: req.body.description,
     duration: req.body.duration,
-    date: req.body.date ? req.body.date : new Date().toISOString().split('T')[0],
     userId: req.params._id,
   });
-  exercise.save(function(err, data) {
+  if (req.body.date) {
+    exercise.date = new Date(req.body.date);
+  }
+  exercise.save(function (err, data) {
     if (err) {
       res.json({ error: JSON.stringify(err) });
       return;
@@ -63,18 +68,20 @@ app.route('/api/users/:_id/exercises').post(function(req, res) {
   });
 });
 
-app.route('/api/users/:_id/logs').get(function(req, res) {
-  let chain = Exercise.find({ userId: req.params._id });
+app.route("/api/users/:_id/logs").get(function (req, res) {
+  let chain = Exercise.find({ userId: req.params._id }).select(
+    "description duration date -_id"
+  );
   if (req.query.from) {
-    chain = chain.and({ date: { $gte: new Date(req.query.from).getTime() } });
+    chain = chain.and({ date: { $gte: new Date(req.query.from) } });
   }
   if (req.query.to) {
-    chain = chain.and({ date: { $lte: new Date(req.query.to).getTime() } });
+    chain = chain.and({ date: { $lte: new Date(req.query.to) } });
   }
   if (req.query.limit) {
-    chain = chain.limit(req.query.limit);
+    chain = chain.limit(parseInt(req.query.limit));
   }
-  chain.exec(function(err, logs) {
+  chain.exec(function (err, logs) {
     if (err) {
       res.json({ error: JSON.stringify(err) });
       return;
@@ -83,8 +90,11 @@ app.route('/api/users/:_id/logs').get(function(req, res) {
   });
 });
 
-mongoose.connect(process.env.DB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(process.env.DB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
 
 const listener = app.listen(process.env.PORT || 3000, () => {
-  console.log('Your app is listening on port ' + listener.address().port)
-})
+  console.log("Your app is listening on port " + listener.address().port);
+});
